@@ -1,6 +1,7 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QWidget, QVBoxLayout
-from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit
+from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QIntValidator
 from datetime import datetime
 
 class MainWindow(QMainWindow):
@@ -32,37 +33,72 @@ class MainWindow(QMainWindow):
                                  """)
         main_layout.addWidget(self.time_display_label)
         
+        ## Layout and Validation for inputs
+        input_layout = QHBoxLayout()
+        validator_H = QIntValidator(0, 23)
+        validator_MS = QIntValidator(0, 59)
+        
+        # Alarm Input
+        self.alarm_input_hour = QLineEdit()
+        self.alarm_input_hour.setValidator(validator_H)
+        self.alarm_input_hour.setMaxLength(2)
+        self.alarm_input_hour.setPlaceholderText("HH")
+        input_layout.addWidget(self.alarm_input_hour)
+        
+        self.alarm_input_minute = QLineEdit()
+        self.alarm_input_minute.setValidator(validator_MS)
+        self.alarm_input_hour.setMaxLength(2)
+        self.alarm_input_minute.setPlaceholderText("MM")
+        input_layout.addWidget(self.alarm_input_minute)
+
+        self.alarm_input_second = QLineEdit()
+        self.alarm_input_second.setValidator(validator_MS)
+        self.alarm_input_hour.setMaxLength(2)
+        self.alarm_input_second.setPlaceholderText("SS")
+        input_layout.addWidget(self.alarm_input_second)
+        
+        main_layout.addLayout(input_layout)
+        
         # Add a start/stop button
-        self.toggle_button = QPushButton("Stop Clock")
-        main_layout.addWidget(self.toggle_button)
+        self.alarm_button = QPushButton("Set Alarm")
+        main_layout.addWidget(self.alarm_button)
         
     def setup_connections(self):
         # Connect signals to slots
-        self.toggle_button.clicked.connect(self.toggle_clock)
+        self.alarm_button.clicked.connect(self.toggle_alarm)
         
     def setup_timer(self):
         # Init the timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_time)
         self.timer.start(1000)
-        self.is_running = True
+        self.alarm_time = ""
+        self.alarm_enabled = False
         
     def update_time(self):
         # Update the display
         current_time = datetime.now().strftime('%H:%M:%S')
         self.time_display_label.setText(current_time)
+        if self.alarm_enabled and current_time == self.alarm_time:
+            print("Ring Ring Ring!")
         
-    def toggle_clock(self):
-        # Start or stop the clock
-        if self.is_running:
-            self.timer.stop()
-            self.toggle_button.setText("Start Clock")
-            self.is_running = False
+    def set_alarm(self):
+        self.alarm_time =  (
+            f"{self.alarm_input_hour.text():0>2}:"
+            f"{self.alarm_input_minute.text():0>2}:"
+            f"{self.alarm_input_second.text():0>2}"
+        )
+        self.alarm_enabled = True
+        
+    def toggle_alarm(self):
+        # Turn on or off the alarm
+        if self.alarm_enabled:
+            self.alarm_enabled = False
+            self.alarm_button.setText("Set Alarm")
         else:
-            self.timer.start(1000)
-            self.toggle_button.setText("Stop Clock")
-            self.is_running = True
-            self.update_time()
+            self.set_alarm()
+            self.alarm_enabled = True
+            self.alarm_button.setText("Disable Alarm")
                 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
