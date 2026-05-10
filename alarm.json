@@ -1,1 +1,30 @@
-[]
+[
+    {
+        "name": "Morning",
+        "hour": "07",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat",
+            "Sun"
+        ]
+    },
+    {
+        "name": "Night",
+        "hour": "22",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": [
+            "Tue",
+            "Thu",
+            "Sun"
+        ]
+    }
+]

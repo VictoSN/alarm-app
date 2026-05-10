@@ -1,10 +1,11 @@
 from PyQt6.QtWidgets import (
     QLabel, QMainWindow, QPushButton,
-    QWidget, QVBoxLayout, QHBoxLayout, QLineEdit,
-    QSystemTrayIcon, QStyle
+    QWidget, QVBoxLayout, QHBoxLayout, 
+    QLineEdit,QSystemTrayIcon, QStyle, 
+    QCheckBox
 )
-from PyQt6.QtCore import QTimer, QUrl, Qt
-from PyQt6.QtGui import QIntValidator
+from PyQt6.QtCore import QTimer, QUrl, Qt, QRegularExpression
+from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtMultimedia import QSoundEffect
 from datetime import datetime
 
@@ -40,14 +41,20 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
-        left_column = QVBoxLayout()
-        main_layout.addLayout(left_column)
         
-        self.right_column = QVBoxLayout()
-        main_layout.addLayout(self.right_column)
-        self.right_column.setSpacing(8)
-        self.right_column.setContentsMargins(5, 5, 5, 5)
-        self.right_column.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.left_column = QVBoxLayout()
+        main_layout.addLayout(self.left_column)
+        self.left_column.setSpacing(8)
+        self.left_column.setContentsMargins(5, 5, 5, 5)
+        self.left_column.setAlignment(Qt.AlignmentFlag.AlignTop)
+        
+        self.separator = QWidget()
+        self.separator.setFixedWidth(2)
+        self.separator.setStyleSheet("background-color: gray;")
+        main_layout.addWidget(self.separator)
+        
+        right_column = QVBoxLayout()
+        main_layout.addLayout(right_column)
         
         # Create label with styling
         self.time_display_label = QLabel()
@@ -59,20 +66,25 @@ class MainWindow(QMainWindow):
                                      qproperty-alignment: AlignCenter;
                                  }
                                  """)
-        left_column.addWidget(self.time_display_label)
+        right_column.addWidget(self.time_display_label)
 
         # Alarm name
         self.alarm_name = QLineEdit()
         self.alarm_name.setPlaceholderText("Alarm")
-        left_column.addWidget(self.alarm_name)
+        right_column.addWidget(self.alarm_name)
 
         ## Layout and Validation for inputs
         input_layout = QHBoxLayout()
-        left_column.addLayout(input_layout)
+        right_column.addLayout(input_layout)
 
-        validator_H = QIntValidator(0, 23)
-        validator_MS = QIntValidator(0, 59)
+        validator_H = QRegularExpressionValidator(
+            QRegularExpression(r"^([01]?\d|2[0-3])$")
+        )
 
+        validator_MS = QRegularExpressionValidator(
+            QRegularExpression(r"^([0-5]?\d)$")
+        )
+        
         # Alarm inputs
         self.alarm_input_hour = QLineEdit()
         self.alarm_input_hour.setValidator(validator_H)
@@ -92,13 +104,24 @@ class MainWindow(QMainWindow):
         self.alarm_input_second.setPlaceholderText("SS")
         input_layout.addWidget(self.alarm_input_second)
 
+        days_layout = QHBoxLayout()
+        right_column.addLayout(days_layout)
+
+        self.day_checkboxes = {}
+        days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]      
+        
+        for day in days:
+            checkbox = QCheckBox(day)
+            self.day_checkboxes[day] = checkbox
+            days_layout.addWidget(checkbox)  
+
         # Add a start/stop button 
         self.alarm_button = QPushButton("Turn On Alarm")
-        left_column.addWidget(self.alarm_button)
+        right_column.addWidget(self.alarm_button)
         
         # Add an add/save/delete button
         action_layout = QHBoxLayout()
-        left_column.addLayout(action_layout)
+        right_column.addLayout(action_layout)
 
         self.del_button = QPushButton("Delete Alarm")
         action_layout.addWidget(self.del_button)
@@ -110,9 +133,11 @@ class MainWindow(QMainWindow):
         action_layout.addWidget(self.save_button)
 
     def render_alarm_list(self):
+        self.separator.setVisible(len(self.alarms) > 0)
+        
         # clear layout
-        for i in reversed(range(self.right_column.count())):
-            widget = self.right_column.itemAt(i).widget()
+        for i in reversed(range(self.left_column.count())):
+            widget = self.left_column.itemAt(i).widget()
             if widget:
                 widget.setParent(None)
 
@@ -124,7 +149,7 @@ class MainWindow(QMainWindow):
                 lambda _, idx=i: self.select_alarm(idx)
             )
 
-            self.right_column.addWidget(btn)
+            self.left_column.addWidget(btn)
                     
     def show_notifications(self, title, message):
         self.tray.showMessage(
@@ -150,8 +175,9 @@ class MainWindow(QMainWindow):
         # Sound Effects
         self.sound = QSoundEffect()
         self.sound.setSource(QUrl.fromLocalFile("alarm.wav"))
+        self.sound.setLoopCount(1000)
 
-    def load_alarm(self):
+    def load_alarm(self):        
         data = self.storage.load()
         if not data:
             return
@@ -177,12 +203,16 @@ class MainWindow(QMainWindow):
     # Alarm logic
     def update_time(self):
         current_time = datetime.now().strftime('%H:%M:%S')
+        today = datetime.now().strftime("%a")
         self.time_display_label.setText(current_time)
 
         for alarm in self.alarms:
             if not alarm.get("enabled"):
                 continue
-
+            
+            if alarm.get("days") and today not in alarm["days"]:
+                continue
+            
             alarm_time = f"{alarm['hour']}:{alarm['minute']}:{alarm['second']}"
 
             if current_time == alarm_time:
@@ -220,6 +250,8 @@ class MainWindow(QMainWindow):
             self.alarm_button.setText("Turn On Alarm")
             self.unlock_inputs()
         else:
+            self.sound.stop()
+            self.save_alarm()
             self.set_alarm()
             self.alarm_button.setText("Turn Off Alarm")
             self.lock_inputs()
@@ -232,6 +264,9 @@ class MainWindow(QMainWindow):
     def select_alarm(self, idx):
         self.selected_idx = idx
         alarm = self.alarms[idx]
+        
+        for d, cb in self.day_checkboxes.items():
+            cb.setChecked(d in alarm.get("days", []))
         
         self.alarm_name.setText(alarm["name"])
         self.alarm_input_hour.setText(alarm["hour"])
@@ -246,6 +281,9 @@ class MainWindow(QMainWindow):
             self.alarm_button.setText("Turn On Alarm")
 
     def new_alarm(self):
+        for cb in self.day_checkboxes.values():
+            cb.setChecked(False)
+            
         self.selected_idx = None
         
         self.alarm.disable()
@@ -280,14 +318,15 @@ class MainWindow(QMainWindow):
         s = self.alarm_input_second.text().strip()
         if not h or not m or not s:
             return
-        
+                
         # Save alarm time into JSON
         data = {
             "name": self.alarm_name.text(),
             "hour": self.alarm_input_hour.text(),
             "minute": self.alarm_input_minute.text(),
             "second": self.alarm_input_second.text(),
-            "enabled": self.alarm.enabled
+            "enabled": self.alarm.enabled,
+            "days": [d for d, cb in self.day_checkboxes.items() if cb.isChecked()]
         }
         
         if self.selected_idx is None:
