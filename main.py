@@ -37,12 +37,17 @@ class MainWindow(QMainWindow):
                                  """)
         main_layout.addWidget(self.time_display_label)
         
+        # Alarm name
+        self.alarm_name = QLineEdit()
+        self.alarm_name.setPlaceholderText("Alarm")
+        main_layout.addWidget(self.alarm_name)
+        
         ## Layout and Validation for inputs
         input_layout = QHBoxLayout()
         validator_H = QIntValidator(0, 23)
         validator_MS = QIntValidator(0, 59)
-        
-        # Alarm Input
+
+        # Alarm inputs
         self.alarm_input_hour = QLineEdit()
         self.alarm_input_hour.setValidator(validator_H)
         self.alarm_input_hour.setMaxLength(2)
@@ -63,23 +68,30 @@ class MainWindow(QMainWindow):
         
         main_layout.addLayout(input_layout)
         
-        # Add a start/stop button
-        self.alarm_button = QPushButton("Set Alarm")
-        main_layout.addWidget(self.alarm_button)
+        # Add a start/stop button & save button
+        action_layout = QHBoxLayout()
+        
+        self.alarm_button = QPushButton("Turn On Alarm")
+        action_layout.addWidget(self.alarm_button)
+        
+        self.save_button = QPushButton("Save Alarm")
+        action_layout.addWidget(self.save_button)
+        
+        main_layout.addLayout(action_layout)
+        
         
     def setup_connections(self):
         # Connect signals to slots
         self.alarm_button.clicked.connect(self.toggle_alarm)
+        self.save_button.clicked.connect(self.save_alarm)
         
-    def setup_timer(self):
-        # Load previous alarm
-        data = self.load_data()
-        if data:
-            print(data)
-            self.alarm_input_hour.setText(data["hour"])
-            self.alarm_input_minute.setText(data["minute"])
-            self.alarm_input_second.setText(data["second"])
+        # Auto Save
+        self.alarm_name.textChanged.connect(self.save_alarm)
+        self.alarm_input_hour.textChanged.connect(self.save_alarm)
+        self.alarm_input_minute.textChanged.connect(self.save_alarm)
+        self.alarm_input_second.textChanged.connect(self.save_alarm)
         
+    def setup_timer(self):            
         # Init the timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_time)
@@ -93,6 +105,27 @@ class MainWindow(QMainWindow):
         # Sound Effects
         self.sound = QSoundEffect()
         self.sound.setSource(QUrl.fromLocalFile("alarm.wav"))
+        
+        # Load previous alarm
+        try:
+            data = self.load_data()
+            if data:
+                print(data)
+                self.alarm_name.setText(data["name"])
+                self.alarm_input_hour.setText(data["hour"])
+                self.alarm_input_minute.setText(data["minute"])
+                self.alarm_input_second.setText(data["second"])
+                self.alarm_enabled = data["enabled"]
+                
+                if data["enabled"]:
+                    self.set_alarm()
+                    self.alarm_button.setText("Turn Off Alarm")
+                else:
+                    self.alarm_button.setText("Turn On Alarm")
+                    
+        except json.JSONDecodeError:
+            print("No Alarms Saved")
+
         
     def update_time(self):
         # Update the display
@@ -112,38 +145,40 @@ class MainWindow(QMainWindow):
             f"{self.alarm_input_minute.text():0>2}:"
             f"{self.alarm_input_second.text():0>2}"
         )
-        self.alarm_enabled = True
-        
-        # Save alarm time into JSON
-        data = ({
-            "hour": f"{self.alarm_input_hour.text():02}:",
-            "minute": f"{self.alarm_input_minute.text():02}:",
-            "second": f"{self.alarm_input_second.text():02}"
-        })
-        self.save_data(data)
         
     def toggle_alarm(self):
-        # Turn on or off the alarm
-        if self.alarm_enabled and not self.alarm_ringing:
-            self.alarm_enabled = False
-            self.alarm_button.setText("Set Alarm")
-        elif self.alarm_enabled and self.alarm_ringing:
-            self.alarm_enabled = False
-            self.alarm_ringing = False
-            self.alarm_button.setText("Set Alarm")
-        else:
+        self.alarm_enabled = not self.alarm_enabled
+
+        if self.alarm_enabled:
             self.set_alarm()
-            self.alarm_enabled = True
-            self.alarm_button.setText("Disable Alarm")
+            self.alarm_button.setText("Turn Off Alarm")
+        else:
+            self.alarm_ringing = False
+            self.alarm_button.setText("Turn On Alarm")
+
+        self.save_alarm()
+
+    def save_alarm(self):
+        # Save alarm time into JSON
+        data = ({
+            "name": self.alarm_name.text(),
+            "hour": self.alarm_input_hour.text(),
+            "minute": self.alarm_input_minute.text(),
+            "second": self.alarm_input_second.text(),
+            "enabled": self.alarm_enabled
+        })
+        self.save_data(data)
+        print("Alarm Saved!")
+  
             
-    def save_data(self, data, filename="alarm.json"):
-        with open(filename, "w") as f:
+    def save_data(self, data, ):
+        with open("alarm.json", "w") as f:
             json.dump(data, f, indent=4)
     
-    def load_data(self, filename="alarm.json"):
-        if not os.path.exists(filename):
-            return []
-        with open(filename, "r") as f:
+    def load_data(self):
+        if not os.path.exists("alarm.json"):
+            return {}
+        with open("alarm.json", "r") as f:
             return json.load(f)
                         
 if __name__ == "__main__":
