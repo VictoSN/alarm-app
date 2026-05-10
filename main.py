@@ -1,4 +1,6 @@
 import sys
+import os
+import json
 from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QIntValidator
@@ -70,6 +72,14 @@ class MainWindow(QMainWindow):
         self.alarm_button.clicked.connect(self.toggle_alarm)
         
     def setup_timer(self):
+        # Load previous alarm
+        data = self.load_data()
+        if data:
+            print(data)
+            self.alarm_input_hour.setText(data["hour"])
+            self.alarm_input_minute.setText(data["minute"])
+            self.alarm_input_second.setText(data["second"])
+        
         # Init the timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_time)
@@ -97,12 +107,20 @@ class MainWindow(QMainWindow):
             self.alarm_button.setText("Turn Off Alarm")
         
     def set_alarm(self):
-        self.alarm_time =  (
+        self.alarm_time = (
             f"{self.alarm_input_hour.text():0>2}:"
             f"{self.alarm_input_minute.text():0>2}:"
             f"{self.alarm_input_second.text():0>2}"
         )
         self.alarm_enabled = True
+        
+        # Save alarm time into JSON
+        data = ({
+            "hour": f"{self.alarm_input_hour.text():02}:",
+            "minute": f"{self.alarm_input_minute.text():02}:",
+            "second": f"{self.alarm_input_second.text():02}"
+        })
+        self.save_data(data)
         
     def toggle_alarm(self):
         # Turn on or off the alarm
@@ -117,6 +135,16 @@ class MainWindow(QMainWindow):
             self.set_alarm()
             self.alarm_enabled = True
             self.alarm_button.setText("Disable Alarm")
+            
+    def save_data(self, data, filename="alarm.json"):
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=4)
+    
+    def load_data(self, filename="alarm.json"):
+        if not os.path.exists(filename):
+            return []
+        with open(filename, "r") as f:
+            return json.load(f)
                         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
