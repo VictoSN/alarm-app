@@ -1,7 +1,9 @@
-{
-    "name": "Testing",
-    "hour": "01",
-    "minute": "00",
-    "second": "25",
-    "enabled": false
-}
+[
+    {
+        "name": "die",
+        "hour": "21",
+        "minute": "23",
+        "second": "23",
+        "enabled": true
+    }
+]
