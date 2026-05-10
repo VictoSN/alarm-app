@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QApplication, QLabel, QMainWindow, QPushButton,
+    QLabel, QMainWindow, QPushButton,
     QWidget, QVBoxLayout, QHBoxLayout, QLineEdit,
     QSystemTrayIcon, QStyle
 )
@@ -247,13 +247,23 @@ class MainWindow(QMainWindow):
 
     def new_alarm(self):
         self.selected_idx = None
+        
+        self.alarm.disable()
+        self.alarm_button.setText("Turn On Alarm")
+        self.unlock_inputs()
+        
         self.alarm_name.clear()
         self.alarm_input_hour.clear()
         self.alarm_input_minute.clear()
         self.alarm_input_second.clear()
 
     def delete_alarm(self):
-        if self.selected_idx is None: return
+        if self.selected_idx is None: 
+            return
+        
+        self.alarm.disable()
+        self.alarm_button.setText("Turn On Alarm")
+        self.unlock_inputs()
         
         del self.alarms[self.selected_idx]
         self.selected_idx = None
