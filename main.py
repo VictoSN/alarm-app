@@ -86,16 +86,23 @@ class MainWindow(QMainWindow):
         self.save_button.clicked.connect(self.save_alarm)
         
         # Auto Save
-        self.alarm_name.textChanged.connect(self.save_alarm)
-        self.alarm_input_hour.textChanged.connect(self.save_alarm)
-        self.alarm_input_minute.textChanged.connect(self.save_alarm)
-        self.alarm_input_second.textChanged.connect(self.save_alarm)
+        self.alarm_name.textChanged.connect(self.schedule_save)
+        self.alarm_input_hour.textChanged.connect(self.schedule_save)
+        self.alarm_input_minute.textChanged.connect(self.schedule_save)
+        self.alarm_input_second.textChanged.connect(self.schedule_save)
         
+    def schedule_save(self):
+        self.save_timer.start(800)
+    
     def setup_timer(self):            
         # Init the timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_time)
         self.timer.start(1000)
+        
+        self.save_timer = QTimer()
+        self.save_timer.setSingleShot(True)
+        self.save_timer.timeout.connect(self.save_alarm)
         
         # Init Alarm
         self.alarm_time = ""
@@ -110,7 +117,6 @@ class MainWindow(QMainWindow):
         try:
             data = self.load_data()
             if data:
-                print(data)
                 self.alarm_name.setText(data["name"])
                 self.alarm_input_hour.setText(data["hour"])
                 self.alarm_input_minute.setText(data["minute"])
@@ -120,6 +126,11 @@ class MainWindow(QMainWindow):
                 if data["enabled"]:
                     self.set_alarm()
                     self.alarm_button.setText("Turn Off Alarm")
+                    
+                    # Block the user from changing mid alarm
+                    self.alarm_input_hour.setDisabled(True)
+                    self.alarm_input_minute.setDisabled(True)
+                    self.alarm_input_second.setDisabled(True)
                 else:
                     self.alarm_button.setText("Turn On Alarm")
                     
@@ -135,7 +146,6 @@ class MainWindow(QMainWindow):
         # Run infinitely until user turn it off
         if self.alarm_enabled and (current_time == self.alarm_time or self.alarm_ringing):
             self.alarm_ringing = True
-            print("Ring Ring Ring!")
             self.sound.play()
             self.alarm_button.setText("Turn Off Alarm")
         
@@ -145,16 +155,26 @@ class MainWindow(QMainWindow):
             f"{self.alarm_input_minute.text():0>2}:"
             f"{self.alarm_input_second.text():0>2}"
         )
-        
+           
     def toggle_alarm(self):
         self.alarm_enabled = not self.alarm_enabled
 
         if self.alarm_enabled:
             self.set_alarm()
             self.alarm_button.setText("Turn Off Alarm")
+            
+            # Block the user from changing mid alarm
+            self.alarm_input_hour.setDisabled(True)
+            self.alarm_input_minute.setDisabled(True)
+            self.alarm_input_second.setDisabled(True)
         else:
             self.alarm_ringing = False
             self.alarm_button.setText("Turn On Alarm")
+            
+            self.alarm_input_hour.setDisabled(False)
+            self.alarm_input_minute.setDisabled(False)
+            self.alarm_input_second.setDisabled(False)
+
 
         self.save_alarm()
 
@@ -168,18 +188,19 @@ class MainWindow(QMainWindow):
             "enabled": self.alarm_enabled
         })
         self.save_data(data)
-        print("Alarm Saved!")
-  
             
     def save_data(self, data, ):
         with open("alarm.json", "w") as f:
             json.dump(data, f, indent=4)
     
     def load_data(self):
-        if not os.path.exists("alarm.json"):
+        try:
+            if not os.path.exists("alarm.json"):
+                return {}
+            with open("alarm.json", "r") as f:
+                return json.load(f)
+        except:
             return {}
-        with open("alarm.json", "r") as f:
-            return json.load(f)
                         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
