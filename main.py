@@ -2,6 +2,8 @@ import sys
 from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QIntValidator
+from PyQt6.QtMultimedia import QSoundEffect
+from PyQt6.QtCore import QUrl
 from datetime import datetime
 
 class MainWindow(QMainWindow):
@@ -47,13 +49,13 @@ class MainWindow(QMainWindow):
         
         self.alarm_input_minute = QLineEdit()
         self.alarm_input_minute.setValidator(validator_MS)
-        self.alarm_input_hour.setMaxLength(2)
+        self.alarm_input_minute.setMaxLength(2)
         self.alarm_input_minute.setPlaceholderText("MM")
         input_layout.addWidget(self.alarm_input_minute)
 
         self.alarm_input_second = QLineEdit()
         self.alarm_input_second.setValidator(validator_MS)
-        self.alarm_input_hour.setMaxLength(2)
+        self.alarm_input_second.setMaxLength(2)
         self.alarm_input_second.setPlaceholderText("SS")
         input_layout.addWidget(self.alarm_input_second)
         
@@ -72,15 +74,27 @@ class MainWindow(QMainWindow):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_time)
         self.timer.start(1000)
+        
+        # Init Alarm
         self.alarm_time = ""
         self.alarm_enabled = False
+        self.alarm_ringing = False
+        
+        # Sound Effects
+        self.sound = QSoundEffect()
+        self.sound.setSource(QUrl.fromLocalFile("alarm.wav"))
         
     def update_time(self):
         # Update the display
         current_time = datetime.now().strftime('%H:%M:%S')
         self.time_display_label.setText(current_time)
-        if self.alarm_enabled and current_time == self.alarm_time:
+        
+        # Run infinitely until user turn it off
+        if self.alarm_enabled and (current_time == self.alarm_time or self.alarm_ringing):
+            self.alarm_ringing = True
             print("Ring Ring Ring!")
+            self.sound.play()
+            self.alarm_button.setText("Turn Off Alarm")
         
     def set_alarm(self):
         self.alarm_time =  (
@@ -92,14 +106,18 @@ class MainWindow(QMainWindow):
         
     def toggle_alarm(self):
         # Turn on or off the alarm
-        if self.alarm_enabled:
+        if self.alarm_enabled and not self.alarm_ringing:
             self.alarm_enabled = False
+            self.alarm_button.setText("Set Alarm")
+        elif self.alarm_enabled and self.alarm_ringing:
+            self.alarm_enabled = False
+            self.alarm_ringing = False
             self.alarm_button.setText("Set Alarm")
         else:
             self.set_alarm()
             self.alarm_enabled = True
             self.alarm_button.setText("Disable Alarm")
-                
+                        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
