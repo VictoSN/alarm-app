@@ -1,10 +1,22 @@
 [
     {
         "name": "Morning",
-        "hour": "07",
+        "hour": "08",
         "minute": "00",
         "second": "00",
-        "enabled": true,
+        "enabled": false,
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed"
+        ]
+    },
+    {
+        "name": "Night",
+        "hour": "18",
+        "minute": "26",
+        "second": "30",
+        "enabled": false,
         "days": [
             "Mon",
             "Tue",
@@ -13,18 +25,16 @@
             "Fri",
             "Sat",
             "Sun"
-        ]
+        ],
+        "ringing": false
     },
     {
-        "name": "Night",
-        "hour": "22",
-        "minute": "00",
-        "second": "00",
+        "name": "Testing",
+        "hour": "18",
+        "minute": "39",
+        "second": "25",
         "enabled": true,
-        "days": [
-            "Tue",
-            "Thu",
-            "Sun"
-        ]
+        "days": [],
+        "ringing": true
     }
 ]

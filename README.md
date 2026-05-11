@@ -7,6 +7,7 @@ A very basic Python desktop application for setting and managing multiple alarms
 2. Named Alarms
 3. Persistent Storage in JSON
 4. System Tray Notifications
+4. Light/Dark Mode Based on System's Preferences
 
 ## How it works
 - Alarms are stored in `alarm.json` and loaded on startup
@@ -21,19 +22,61 @@ A very basic Python desktop application for setting and managing multiple alarms
 ### Multiple Alarms
 ![Multiple Alarms](/images/Multiple.png)
 
-## How to run
-1. Clone the repo
-2. Create a virtual environment:
+### Dark Mode
+![Dark Mode](/images/Dark.png)
+
+## How to Run
+
+### 1. Clone the repository
 ```bash
+git clone <your-repo-url>
+cd alarm-app
+```
+
+---
+
+# Windows (PowerShell)
+
+### 2. Create a virtual environment
+```powershell
 python -m venv venv
+```
+
+### 3. Activate the virtual environment
+```powershell
+.\venv\Scripts\Activate
+```
+
+### 4. Install dependencies
+```powershell
+pip install PyQt6
+```
+
+### 5. Run the application
+```powershell
+python main.py
+```
+
+---
+
+# Linux / macOS
+
+### 2. Create a virtual environment
+```bash
+python3 -m venv venv
+```
+
+### 3. Activate the virtual environment
+```bash
 source venv/bin/activate
 ```
-3. Install dependencies:
+
+### 4. Install dependencies
 ```bash
 pip install PyQt6
 ```
-4. Add an `alarm.wav` file to the project root
-5. Run:
+
+### 5. Run the application
 ```bash
 python main.py
 ```

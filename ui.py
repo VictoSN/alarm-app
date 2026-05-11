@@ -6,9 +6,10 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QTimer, QUrl, Qt, QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
-from PyQt6.QtMultimedia import QSoundEffect
-from datetime import datetime
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 
+from datetime import datetime
+from pathlib import Path
 from alarm import Alarm
 from storage import Storage
 
@@ -62,7 +63,6 @@ class MainWindow(QMainWindow):
                                  QLabel {
                                      font-size: 48px;
                                      font-weight: bold;
-                                     color: black;
                                      qproperty-alignment: AlignCenter;
                                  }
                                  """)
@@ -115,10 +115,18 @@ class MainWindow(QMainWindow):
             self.day_checkboxes[day] = checkbox
             days_layout.addWidget(checkbox)  
 
+        alarm_layout = QHBoxLayout()
+        right_column.addLayout(alarm_layout)
+
         # Add a start/stop button 
         self.alarm_button = QPushButton("Turn On Alarm")
-        right_column.addWidget(self.alarm_button)
-        
+        alarm_layout.addWidget(self.alarm_button)
+    
+        # Add a dismiss button 
+        self.dismiss_button = QPushButton("Dismiss")
+        alarm_layout.addWidget(self.dismiss_button)
+        self.dismiss_button.setDisabled(True)
+
         # Add an add/save/delete button
         action_layout = QHBoxLayout()
         right_column.addLayout(action_layout)
@@ -162,6 +170,7 @@ class MainWindow(QMainWindow):
     def setup_connections(self):
         # Connect signals to slots
         self.alarm_button.clicked.connect(self.toggle_alarm)
+        self.dismiss_button.clicked.connect(self.dismiss_alarm)
         self.save_button.clicked.connect(self.save_alarm)
         self.add_button.clicked.connect(self.new_alarm)
         self.del_button.clicked.connect(self.delete_alarm)
@@ -173,9 +182,18 @@ class MainWindow(QMainWindow):
         self.timer.start(1000)
 
         # Sound Effects
-        self.sound = QSoundEffect()
-        self.sound.setSource(QUrl.fromLocalFile("alarm.wav"))
-        self.sound.setLoopCount(1000)
+        BASE_DIR = Path(__file__).resolve().parent
+        sound_file = BASE_DIR / "alarm.wav"
+
+        self.sound = QMediaPlayer()
+        self.audio_output = QAudioOutput()
+        self.sound.setAudioOutput(self.audio_output)
+        self.sound.setSource(QUrl.fromLocalFile(str(sound_file)))
+        self.sound.mediaStatusChanged.connect(self._loop_sound)
+
+    def _loop_sound(self, status):
+        if status == QMediaPlayer.MediaStatus.EndOfMedia:
+            self.sound.play()
 
     def load_alarm(self):        
         data = self.storage.load()
@@ -215,12 +233,11 @@ class MainWindow(QMainWindow):
             
             alarm_time = f"{alarm['hour']}:{alarm['minute']}:{alarm['second']}"
 
-            if current_time == alarm_time:
+            if current_time == alarm_time and not alarm.get("ringing", False):
+                self.dismiss_button.setDisabled(False)
+                alarm["ringing"] = True
                 self.sound.play()
-
-                if not alarm.get("notified", False):
-                    self.show_notifications("Alarm", alarm["name"])
-                    alarm["notified"] = True
+                self.show_notifications("Alarm", alarm["name"])
                     
         self.storage.save(self.alarms)
                     
@@ -245,12 +262,13 @@ class MainWindow(QMainWindow):
                 return
         
         if self.alarm.enabled:
+            self.sound.stop()
+            self.sound.setPosition(0)
             self.alarm.disable()
-            self.alarm.notified = False
             self.alarm_button.setText("Turn On Alarm")
+            self.dismiss_button.setDisabled(True)
             self.unlock_inputs()
         else:
-            self.sound.stop()
             self.save_alarm()
             self.set_alarm()
             self.alarm_button.setText("Turn Off Alarm")
@@ -279,6 +297,15 @@ class MainWindow(QMainWindow):
             self.lock_inputs()
         else:
             self.alarm_button.setText("Turn On Alarm")
+            self.unlock_inputs()
+
+    def dismiss_alarm(self):
+        self.sound.stop()
+        self.sound.setPosition(0)
+        if self.selected_idx is not None:
+            self.alarms[self.selected_idx]["ringing"] = False
+        self.storage.save(self.alarms)
+        self.dismiss_button.setDisabled(True)
 
     def new_alarm(self):
         for cb in self.day_checkboxes.values():
