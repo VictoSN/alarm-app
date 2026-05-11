@@ -30,11 +30,10 @@
     },
     {
         "name": "Testing",
-        "hour": "18",
-        "minute": "39",
-        "second": "25",
+        "hour": "19",
+        "minute": "33",
+        "second": "35",
         "enabled": true,
-        "days": [],
-        "ringing": true
+        "days": []
     }
 ]

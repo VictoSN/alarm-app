@@ -212,7 +212,7 @@ class MainWindow(QMainWindow):
                 int(data["second"])
             )
             self.alarm_button.setText("Turn Off Alarm")
-            self.lock_inputs()
+            self.set_inputs_enabled(False)
         else:
             self.alarm_button.setText("Turn On Alarm")
         
@@ -267,12 +267,12 @@ class MainWindow(QMainWindow):
             self.alarm.disable()
             self.alarm_button.setText("Turn On Alarm")
             self.dismiss_button.setDisabled(True)
-            self.unlock_inputs()
+            self.set_inputs_enabled(True)
         else:
             self.save_alarm()
             self.set_alarm()
             self.alarm_button.setText("Turn Off Alarm")
-            self.lock_inputs()
+            self.set_inputs_enabled(False)
             
         if self.selected_idx is not None:
             self.alarms[self.selected_idx]["enabled"] = self.alarm.enabled
@@ -294,10 +294,10 @@ class MainWindow(QMainWindow):
         
         if alarm["enabled"]:
             self.alarm_button.setText("Turn Off Alarm")
-            self.lock_inputs()
+            self.set_inputs_enabled(False)
         else:
             self.alarm_button.setText("Turn On Alarm")
-            self.unlock_inputs()
+            self.set_inputs_enabled(True)
 
     def dismiss_alarm(self):
         self.sound.stop()
@@ -315,7 +315,7 @@ class MainWindow(QMainWindow):
         
         self.alarm.disable()
         self.alarm_button.setText("Turn On Alarm")
-        self.unlock_inputs()
+        self.set_inputs_enabled(True)
         
         self.alarm_name.clear()
         self.alarm_input_hour.clear()
@@ -328,7 +328,7 @@ class MainWindow(QMainWindow):
         
         self.alarm.disable()
         self.alarm_button.setText("Turn On Alarm")
-        self.unlock_inputs()
+        self.set_inputs_enabled(True)
         
         del self.alarms[self.selected_idx]
         self.selected_idx = None
@@ -366,12 +366,13 @@ class MainWindow(QMainWindow):
         self.render_alarm_list()
 
     # UI helpers
-    def lock_inputs(self):
-        self.alarm_input_hour.setDisabled(True)
-        self.alarm_input_minute.setDisabled(True)
-        self.alarm_input_second.setDisabled(True)
+    def set_inputs_enabled(self, enabled):
+        widgets = [
+            self.alarm_input_hour,
+            self.alarm_input_minute,
+            self.alarm_input_second,
+            *self.day_checkboxes.values()
+        ]
 
-    def unlock_inputs(self):
-        self.alarm_input_hour.setDisabled(False)
-        self.alarm_input_minute.setDisabled(False)
-        self.alarm_input_second.setDisabled(False)
+        for widget in widgets:
+            widget.setDisabled(not enabled)
