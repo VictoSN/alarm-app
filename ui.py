@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
         
     def setup_ui(self):
         # Create and arrange the widgets
-        self.setGeometry(100, 100, 540, 350)
+        self.setGeometry(0, 0, 550, 350)
         self.setWindowTitle("Digital Alarm")
 
         # Create central widget and layout
@@ -52,7 +52,6 @@ class MainWindow(QMainWindow):
         self.scroll.setWidget(self.top_container)
         main_layout.addWidget(self.scroll)
         
-        main_layout.addLayout(self.left_column)
         self.left_column.setAlignment(Qt.AlignmentFlag.AlignTop)
         
         self.separator = QWidget()
@@ -155,7 +154,12 @@ class MainWindow(QMainWindow):
         self.action_inputs(False)
 
     def render_alarm_list(self):
-        self.separator.setVisible(len(self.alarms) > 0)
+        if len(self.alarms) > 0:
+            self.scroll.show()
+            self.separator.setVisible(True)
+        else:
+            self.scroll.hide()
+            self.separator.setVisible(False)
         
         # clear layout
         for i in reversed(range(self.left_column.count())):
