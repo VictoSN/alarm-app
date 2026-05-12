@@ -1,5 +1,3 @@
-from datetime import datetime
-
 class Alarm:
     def __init__(self):
         self.alarm_time = None

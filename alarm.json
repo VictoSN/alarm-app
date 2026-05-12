@@ -4,6 +4,42 @@
         "hour": "08",
         "minute": "00",
         "second": "00",
+        "enabled": true,
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed"
+        ]
+    },
+    {
+        "name": "Night",
+        "hour": "18",
+        "minute": "26",
+        "second": "30",
+        "enabled": true,
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat",
+            "Sun"
+        ]
+    },
+    {
+        "name": "Testing",
+        "hour": "19",
+        "minute": "33",
+        "second": "35",
+        "enabled": false,
+        "days": []
+    },
+    {
+        "name": "Morning",
+        "hour": "08",
+        "minute": "00",
+        "second": "00",
         "enabled": false,
         "days": [
             "Mon",
@@ -16,7 +52,7 @@
         "hour": "18",
         "minute": "26",
         "second": "30",
-        "enabled": false,
+        "enabled": true,
         "days": [
             "Mon",
             "Tue",
@@ -25,15 +61,26 @@
             "Fri",
             "Sat",
             "Sun"
-        ],
-        "ringing": false
+        ]
     },
     {
         "name": "Testing",
         "hour": "19",
         "minute": "33",
         "second": "35",
-        "enabled": true,
+        "enabled": false,
         "days": []
+    },
+    {
+        "name": "Morning",
+        "hour": "08",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed"
+        ]
     }
 ]

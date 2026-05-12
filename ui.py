@@ -1,8 +1,8 @@
 from PyQt6.QtWidgets import (
-    QLabel, QMainWindow, QPushButton,
+    QLabel, QMainWindow, QPushButton, 
     QWidget, QVBoxLayout, QHBoxLayout, 
     QLineEdit,QSystemTrayIcon, QStyle, 
-    QCheckBox
+    QCheckBox, QScrollArea
 )
 from PyQt6.QtCore import QTimer, QUrl, Qt, QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
@@ -35,18 +35,24 @@ class MainWindow(QMainWindow):
         
     def setup_ui(self):
         # Create and arrange the widgets
-        self.setGeometry(100, 100, 400, 300)
-        self.setWindowTitle("Digital Clock")
+        self.setGeometry(100, 100, 540, 350)
+        self.setWindowTitle("Digital Alarm")
 
         # Create central widget and layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
         
-        self.left_column = QVBoxLayout()
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        
+        self.top_container = QWidget()
+        self.left_column = QVBoxLayout(self.top_container)
+
+        self.scroll.setWidget(self.top_container)
+        main_layout.addWidget(self.scroll)
+        
         main_layout.addLayout(self.left_column)
-        self.left_column.setSpacing(8)
-        self.left_column.setContentsMargins(5, 5, 5, 5)
         self.left_column.setAlignment(Qt.AlignmentFlag.AlignTop)
         
         self.separator = QWidget()
@@ -61,7 +67,7 @@ class MainWindow(QMainWindow):
         self.time_display_label = QLabel()
         self.time_display_label.setStyleSheet("""
                                  QLabel {
-                                     font-size: 48px;
+                                     font-size: 80px;
                                      font-weight: bold;
                                      qproperty-alignment: AlignCenter;
                                  }
@@ -69,11 +75,16 @@ class MainWindow(QMainWindow):
         right_column.addWidget(self.time_display_label)
 
         # Alarm name
+        self.alarm_name_label = QLabel("Name:")
+        right_column.addWidget(self.alarm_name_label)
+        
         self.alarm_name = QLineEdit()
         self.alarm_name.setPlaceholderText("Alarm")
         right_column.addWidget(self.alarm_name)
 
         ## Layout and Validation for inputs
+        self.alarm_time_label = QLabel("Time:")
+        right_column.addWidget(self.alarm_time_label)
         input_layout = QHBoxLayout()
         right_column.addLayout(input_layout)
 
@@ -104,6 +115,8 @@ class MainWindow(QMainWindow):
         self.alarm_input_second.setPlaceholderText("SS")
         input_layout.addWidget(self.alarm_input_second)
 
+        self.alarm_days_label = QLabel("Repeat:")
+        right_column.addWidget(self.alarm_days_label)
         days_layout = QHBoxLayout()
         right_column.addLayout(days_layout)
 
@@ -139,6 +152,7 @@ class MainWindow(QMainWindow):
         
         self.save_button = QPushButton("Save Alarm")
         action_layout.addWidget(self.save_button)
+        self.action_inputs(False)
 
     def render_alarm_list(self):
         self.separator.setVisible(len(self.alarms) > 0)
@@ -151,14 +165,19 @@ class MainWindow(QMainWindow):
 
         # rebuild UI
         for i, alarm in enumerate(self.alarms):
-            btn = QPushButton(alarm["name"])
-
+            button_text = ' '
+            if alarm.get("enabled", False):
+                button_text += "➤ "
+            button_text += alarm["name"]
+                
+            btn = QPushButton(button_text)
+            btn.setStyleSheet("text-align: left;")
             btn.clicked.connect(
                 lambda _, idx=i: self.select_alarm(idx)
             )
 
-            self.left_column.addWidget(btn)
-                    
+            self.left_column.addWidget(btn)          
+                  
     def show_notifications(self, title, message):
         self.tray.showMessage(
             title,
@@ -277,11 +296,14 @@ class MainWindow(QMainWindow):
         if self.selected_idx is not None:
             self.alarms[self.selected_idx]["enabled"] = self.alarm.enabled
             self.storage.save(self.alarms)
+            
+        self.render_alarm_list()
         
     # Alarms Operations
     def select_alarm(self, idx):
         self.selected_idx = idx
         alarm = self.alarms[idx]
+        self.action_inputs(True)
         
         for d, cb in self.day_checkboxes.items():
             cb.setChecked(d in alarm.get("days", []))
@@ -321,6 +343,7 @@ class MainWindow(QMainWindow):
         self.alarm_input_hour.clear()
         self.alarm_input_minute.clear()
         self.alarm_input_second.clear()
+        self.action_inputs(False)
 
     def delete_alarm(self):
         if self.selected_idx is None: 
@@ -336,6 +359,7 @@ class MainWindow(QMainWindow):
         self.storage.save(self.alarms)
         self.render_alarm_list()
         self.new_alarm()
+        self.action_inputs(False)
     
     def save_alarm(self):
         if not self.alarm_name.text().strip():
@@ -364,6 +388,7 @@ class MainWindow(QMainWindow):
             
         self.storage.save(self.alarms)
         self.render_alarm_list()
+        self.action_inputs(True)
 
     # UI helpers
     def set_inputs_enabled(self, enabled):
@@ -376,3 +401,6 @@ class MainWindow(QMainWindow):
 
         for widget in widgets:
             widget.setDisabled(not enabled)
+            
+    def action_inputs(self, enabled):
+        self.del_button.setDisabled(not enabled)
