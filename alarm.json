@@ -1,1 +1,235 @@
-[]
+[
+    {
+        "name": "Morning",
+        "hour": "08",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": []
+    },
+    {
+        "name": "Night",
+        "hour": "21",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": []
+    },
+    {
+        "name": "Breakfast",
+        "hour": "09",
+        "minute": "00",
+        "second": "00",
+        "enabled": false,
+        "days": [
+            "Mon",
+            "Wed",
+            "Fri",
+            "Sun"
+        ]
+    },
+    {
+        "name": "Workout",
+        "hour": "06",
+        "minute": "30",
+        "second": "00",
+        "enabled": true,
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri"
+        ]
+    },
+    {
+        "name": "Lunch",
+        "hour": "12",
+        "minute": "30",
+        "second": "00",
+        "enabled": true,
+        "days": []
+    },
+    {
+        "name": "Dinner",
+        "hour": "19",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": []
+    },
+    {
+        "name": "Study",
+        "hour": "20",
+        "minute": "00",
+        "second": "00",
+        "enabled": false,
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu"
+        ]
+    },
+    {
+        "name": "Meeting",
+        "hour": "10",
+        "minute": "15",
+        "second": "00",
+        "enabled": true,
+        "days": [
+            "Tue",
+            "Thu"
+        ]
+    },
+    {
+        "name": "Nap",
+        "hour": "15",
+        "minute": "00",
+        "second": "00",
+        "enabled": false,
+        "days": []
+    },
+    {
+        "name": "Gaming",
+        "hour": "22",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": [
+            "Fri",
+            "Sat"
+        ]
+    },
+    {
+        "name": "Coffee Break",
+        "hour": "11",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri"
+        ]
+    },
+    {
+        "name": "Meditation",
+        "hour": "07",
+        "minute": "15",
+        "second": "00",
+        "enabled": false,
+        "days": [
+            "Sat",
+            "Sun"
+        ]
+    },
+    {
+        "name": "Walk",
+        "hour": "17",
+        "minute": "45",
+        "second": "00",
+        "enabled": true,
+        "days": []
+    },
+    {
+        "name": "Hydrate",
+        "hour": "14",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": []
+    },
+    {
+        "name": "Read",
+        "hour": "18",
+        "minute": "30",
+        "second": "00",
+        "enabled": false,
+        "days": [
+            "Mon",
+            "Wed",
+            "Fri"
+        ]
+    },
+    {
+        "name": "Project Work",
+        "hour": "16",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": [
+            "Tue",
+            "Thu"
+        ]
+    },
+    {
+        "name": "Stretch",
+        "hour": "13",
+        "minute": "15",
+        "second": "00",
+        "enabled": true,
+        "days": []
+    },
+    {
+        "name": "Call Family",
+        "hour": "20",
+        "minute": "30",
+        "second": "00",
+        "enabled": false,
+        "days": [
+            "Sun"
+        ]
+    },
+    {
+        "name": "Laundry",
+        "hour": "10",
+        "minute": "00",
+        "second": "00",
+        "enabled": false,
+        "days": [
+            "Sat"
+        ]
+    },
+    {
+        "name": "Shopping",
+        "hour": "17",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": [
+            "Sat"
+        ]
+    },
+    {
+        "name": "Movie Time",
+        "hour": "23",
+        "minute": "00",
+        "second": "00",
+        "enabled": false,
+        "days": [
+            "Fri"
+        ]
+    },
+    {
+        "name": "Wake Up",
+        "hour": "07",
+        "minute": "00",
+        "second": "00",
+        "enabled": true,
+        "days": []
+    },
+    {
+        "name": "Code Review",
+        "hour": "15",
+        "minute": "30",
+        "second": "00",
+        "enabled": true,
+        "days": [
+            "Mon",
+            "Wed"
+        ]
+    }
+]
